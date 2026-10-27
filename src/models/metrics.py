@@ -15,6 +15,10 @@ class MetricsSnapshot:
         throughput_per_minute: Vehicles that exited per minute.
         served_vehicles: Vehicles that completed their lifecycle.
         waiting_vehicles: Vehicles currently blocked waiting for a slot.
+
+    Raises:
+        ValueError: If any metric is negative or ``utilization_percent`` is
+            outside ``[0.0, 100.0]``.
     """
 
     average_waiting_time_s: float = 0.0
@@ -24,3 +28,24 @@ class MetricsSnapshot:
     throughput_per_minute: float = 0.0
     served_vehicles: int = 0
     waiting_vehicles: int = 0
+
+    def __post_init__(self) -> None:
+        """Validate that all metrics stay within their mathematical domain."""
+        if self.average_waiting_time_s < 0:
+            raise ValueError("average_waiting_time_s must be >= 0")
+        if self.average_service_time_s < 0:
+            raise ValueError("average_service_time_s must be >= 0")
+        if self.average_turnaround_time_s < 0:
+            raise ValueError("average_turnaround_time_s must be >= 0")
+        if not 0.0 <= self.utilization_percent <= 100.0:
+            raise ValueError("utilization_percent must be between 0 and 100")
+        if self.throughput_per_minute < 0:
+            raise ValueError("throughput_per_minute must be >= 0")
+        if self.served_vehicles < 0:
+            raise ValueError("served_vehicles must be >= 0")
+        if self.waiting_vehicles < 0:
+            raise ValueError("waiting_vehicles must be >= 0")
+
+
+EMPTY_METRICS = MetricsSnapshot()
+"""Zeroed snapshot used before the telemetry worker emits its first report."""
