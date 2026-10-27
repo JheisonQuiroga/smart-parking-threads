@@ -87,6 +87,20 @@ Desarrollar un simulador interactivo de parqueadero inteligente en **Python** co
 ### Regla 9: Flujo de Trabajo y Convención de Commits
 - Ver la sección 9. **Todos los commits deben redactarse SIEMPRE en inglés** y seguir *Conventional Commits*.
 
+### Regla 10: Clean Code y Clean Architecture
+- Ver la sección 10. Es obligatoria para todo código nuevo o modificado.
+
+### Regla 11: Política de Idioma
+| Elemento | Idioma |
+| :--- | :--- |
+| Identificadores (variables, funciones, clases, módulos, constantes, miembros de `Enum`) | **Inglés** |
+| Docstrings y comentarios de código | **Inglés** |
+| Mensajes de commit, nombres de ramas | **Inglés** |
+| Textos visibles en la GUI (etiquetas, botones, log visual) | **Español** |
+| `AGENTS.md`, `README.md` e informe | **Español** |
+
+- Los textos en español de la GUI viven **solo** en `src/views/` (p. ej. un diccionario `STATE_LABELS: dict[VehicleState, str]`); los modelos nunca contienen texto de presentación.
+
 ---
 
 ## 4. Herramientas Utilizadas y Stack Tecnológico
@@ -120,9 +134,16 @@ La ventana principal de `Tkinter` debe incluir obligatoriamente:
 
 ---
 
-## 6. Arquitectura Modular (Patrón MVC) y Estructura del Proyecto
+## 6. Arquitectura: MVC + Capas de Servicio (`processes`) y Persistencia (`data`)
 
-El proyecto adopta una **arquitectura modular basada en el patrón MVC (Modelo – Vista – Controlador)**, con una capa de **persistencia aislada** (`data/`) y una capa de **procesos** (`processes/`) para el paralelismo real.
+El proyecto adopta una **arquitectura modular basada en el patrón MVC (Modelo – Vista – Controlador)**, complementada con dos capas de infraestructura: una de **servicio** (`processes/`) para el paralelismo real y una de **persistencia aislada** (`data/`).
+
+> [!NOTE]
+> MVC define **quién interactúa con el usuario y quién decide**; no obliga a que todo el código quepa en tres carpetas. `processes/` y `data/` **no son M, V ni C**: son infraestructura que el Controlador utiliza (igual que un controlador web usa un servicio de correo o una base de datos).
+
+**¿Por qué `processes/` es una capa separada y no parte de `core/`?**
+1. **Memoria aislada**: el proceso de telemetría vive en otro espacio de memoria; no comparte `Lock` ni `Semaphore` y solo se comunica por `multiprocessing.Queue` (paso de mensajes vs. memoria compartida de los hilos). Mantenerlo aparte hace visible esa diferencia, central en la rúbrica.
+2. **Seguridad de importación con `spawn`**: en Windows/macOS el proceso hijo **reimporta** su módulo. Si `processes/` solo depende de `models`, `data` y `config`, el hijo nunca carga `tkinter` ni los hilos del controlador.
 
 ### 6.1 Responsabilidad de cada capa
 
@@ -130,7 +151,7 @@ El proyecto adopta una **arquitectura modular basada en el patrón MVC (Modelo �
 | :--- | :--- | :--- | :--- | :--- |
 | **Modelo (M)** | `src/models/` | Datos puros: `dataclasses`, `Enum` de estados del vehículo/proceso, eventos de UI y telemetría. **Sin lógica de concurrencia, sin Tkinter, sin I/O.** | `config` | `core`, `views`, `data`, `processes` |
 | **Vista (V)** | `src/views/` | Todo lo visual en Tkinter. Contiene **un archivo de widgets** reutilizables y **un archivo orquestador** que ensambla la ventana. **Sin lógica de negocio ni primitivos de sincronización.** | `models`, `config` | `data`, `processes`, `threading.Semaphore/Lock` |
-| **Controlador (C)** | `src/core/` | Lógica de la aplicación: `Semaphore`, `Lock`, ciclo de vida de los hilos de vehículos, puente entre Vista y Procesos. | `models`, `config`, `processes` | `views` (la Vista llama al controlador, nunca al revés) |
+| **Controlador (C)** | `src/core/` | Lógica de la aplicación, dividida por responsabilidad (SRP): `app_controller.py` (fachada para la Vista), `parking_manager.py` (`BoundedSemaphore`, `Lock`, cajones), `vehicle_thread.py` (hilo por vehículo) y `ports.py` (interfaces `Protocol`). | `models`, `config`, `processes` | `views` (la Vista llama al controlador, nunca al revés) |
 | **Procesos** | `src/processes/` | `multiprocessing.Process` de telemetría y métricas SO. Recibe eventos por `multiprocessing.Queue`. | `models`, `data`, `config` | `views`, `core` |
 | **Persistencia** | `src/data/` | Acceso aislado a disco (repositorio CSV/log). Única capa que abre archivos. | `models`, `config` | `views`, `core` |
 
@@ -141,7 +162,7 @@ El proyecto adopta una **arquitectura modular basada en el patrón MVC (Modelo �
 
 ```mermaid
 flowchart LR
-    V["Vista (src/views)\nwidgets.py + app_window.py"] -- "acciones del usuario\n(Iniciar/Agregar/Detener/Reiniciar)" --> C["Controlador (src/core)\nparking_manager + vehicle_thread"]
+    V["Vista (src/views)\nwidgets.py + app_window.py"] -- "acciones del usuario\n(Iniciar/Agregar/Detener/Reiniciar)" --> C["Controlador (src/core)\napp_controller + parking_manager\n+ vehicle_thread + ports"]
     C -- "ui_queue (queue.Queue)\nmetrics_queue (mp.Queue)" --> V
     C -- "mp.Queue (eventos crudos)" --> P["Proceso (src/processes)\ntelemetry_proc.py"]
     P -- "snapshots de métricas" --> C
@@ -152,8 +173,8 @@ flowchart LR
     M -. usado por .-> D
 ```
 
-- La **Vista** nunca modifica el estado compartido directamente: invoca métodos públicos del controlador y lee de las colas en `.after(100, ...)`.
-- El **Controlador** es el único dueño de `Semaphore`, `Lock`, `ocupados` y del mapa de cajones.
+- La **Vista** nunca modifica el estado compartido directamente: invoca métodos públicos de `AppController` (única API visible para la Vista) y lee eventos en `.after(100, ...)`.
+- El **Controlador** (`ParkingManager`) es el único dueño de `BoundedSemaphore`, `Lock`, `occupied` y del mapa de cajones.
 - Los **Modelos** son el contrato de datos entre capas e inter-proceso (deben ser *picklables*).
 
 ### 6.3 Estructura de directorios
@@ -165,20 +186,22 @@ smart-parking-threads/
 ├── main.py                        # Punto de entrada: compone Modelo + Controlador + Vista
 ├── src/
 │   ├── __init__.py
-│   ├── config.py                  # Parámetros globales (CAPACIDAD, tiempos, random.seed, colores)
+│   ├── config.py                  # SimulationConfig inmutable (capacity, tiempos, seed, tema de colores)
 │   ├── models/                    # [M] Modelos
-│   │   ├── __init__.py
-│   │   ├── events.py              # Dataclasses de eventos de UI y telemetría inter-proceso
-│   │   ├── vehicle.py             # Dataclass/Enum del vehículo y sus estados (Nuevo, Esperando, Estacionado, Salió)
-│   │   └── metrics.py             # Dataclass de snapshot de métricas SO
+│   │   ├── __init__.py            # Reexporta la API pública de la capa
+│   │   ├── events.py              # VehicleEvent (UI + telemetría) y StopSignal (picklables)
+│   │   ├── vehicle.py             # VehicleState (ARRIVING, WAITING, PARKED, EXITED) y VehicleInfo
+│   │   └── metrics.py             # MetricsSnapshot con métricas de planificación SO
 │   ├── views/                     # [V] Vistas (Tkinter)
 │   │   ├── __init__.py
 │   │   ├── widgets.py             # Widgets reutilizables: grilla de cajones, tabla de vehículos, panel de métricas, consola de eventos, panel de configuración y controles
 │   │   └── app_window.py          # Orquestador: ensambla widgets, enlaza botones al controlador y ejecuta el ciclo .after(100)
 │   ├── core/                      # [C] Controlador (lógica de la aplicación)
 │   │   ├── __init__.py
-│   │   ├── parking_manager.py     # Semaphore(CAPACIDAD), Lock(), cupos, cajones, creación/parada de hilos
-│   │   └── vehicle_thread.py      # Clase Vehiculo(threading.Thread) con ciclo de vida completo
+│   │   ├── app_controller.py      # AppController: fachada para la Vista (start/add/stop/reset/shutdown), colas y proceso
+│   │   ├── parking_manager.py     # ParkingManager: BoundedSemaphore(capacity), Lock(), occupied y cajones
+│   │   ├── vehicle_thread.py      # VehicleThread(threading.Thread) con ciclo de vida completo
+│   │   └── ports.py               # Interfaces (typing.Protocol), p. ej. EventPublisher
 │   ├── processes/                 # Paralelismo real (multiprocessing)
 │   │   ├── __init__.py
 │   │   └── telemetry_proc.py      # Process: cálculo de métricas SO; delega la escritura a src/data
@@ -187,6 +210,9 @@ smart-parking-threads/
 │       └── csv_repository.py      # Escritura/lectura de eventos CSV/log en logs/
 ├── logs/                          # Generada automáticamente con los CSV de eventos (ignorada por git)
 └── tests/                         # Pruebas de concurrencia, semáforos, telemetría y persistencia
+    ├── test_config.py
+    ├── test_models.py
+    ├── test_app_controller.py
     ├── test_parking_manager.py
     ├── test_telemetry.py
     └── test_csv_repository.py
@@ -194,6 +220,9 @@ smart-parking-threads/
 
 > [!IMPORTANT]
 > Si `widgets.py` crece demasiado, puede convertirse en el paquete `src/views/widgets/` (un archivo por widget), pero `app_window.py` debe seguir siendo el **único orquestador** de la ventana.
+
+> [!NOTE]
+> Los archivos de `core/` (`app_controller.py`, `ports.py`) y de las demás capas se crean o completan en la *feature* de su capa (ver sección 11).
 
 ---
 
@@ -210,7 +239,7 @@ python3 main.py
 
 ### Ejecutar Pruebas de Verificación (Concurrencia y Multiprocessing)
 ```bash
-python3 -m unittest discover -s tests
+python3 -m unittest discover -s tests -t .
 ```
 
 ---
@@ -219,40 +248,39 @@ python3 -m unittest discover -s tests
 Todo agente que implemente o modifique el núcleo de concurrencia debe respetar la lógica del anexo técnico oficial:
 
 ```python
-# Configuración inicial en Proceso Principal
-CAPACIDAD = N
-semaforo = threading.BoundedSemaphore(CAPACIDAD)
+# Main process setup (owned by ParkingManager)
+config = SimulationConfig(capacity=N)
+semaphore = threading.BoundedSemaphore(config.capacity)
 lock = threading.Lock()
-ocupados = 0
+occupied = 0
 
-# Hilo de cada vehículo (threading.Thread)
-def ciclo_vehiculo(id_vehiculo):
-    esperar_tiempo_aleatorio_llegada()
-    notificar_ui_y_telemetria(id_vehiculo, estado="ESPERANDO_CUPO")
+# One thread per vehicle (VehicleThread.run)
+def run_vehicle(vehicle_id: int) -> None:
+    wait_random_arrival_time()
+    publish(vehicle_id, VehicleState.WAITING)
 
     while not stop_event.is_set():
-        # Intenta adquirir cupo en el semáforo con timeout para no bloquear indefinidamente
-        if semaforo.acquire(timeout=0.5):
+        # Try to get a slot with a timeout so the thread never blocks forever
+        if semaphore.acquire(timeout=config.acquire_timeout_s):
             try:
-                with lock:  # Inicio Sección Crítica (Entrada)
-                    ocupados += 1
-                    cajon = asignar_cajon_libre(id_vehiculo)
-                # Fin Sección Crítica (Entrada)
+                with lock:  # Critical section start (entry)
+                    occupied += 1
+                    slot = claim_free_slot(vehicle_id)
+                # Critical section end (entry)
 
-                notificar_ui_y_telemetria(id_vehiculo, estado="ESTACIONADO", cajon=cajon)
-                estacionar_tiempo_aleatorio(stop_event)
+                publish(vehicle_id, VehicleState.PARKED, slot=slot)
+                park_for_random_time(stop_event)
 
-                with lock:  # Inicio Sección Crítica (Salida)
-                    ocupados -= 1
-                    liberar_cajon(cajon)
-                # Fin Sección Crítica (Salida)
+                with lock:  # Critical section start (exit)
+                    occupied -= 1
+                    free_slot(slot)
+                # Critical section end (exit)
 
-                notificar_ui_y_telemetria(id_vehiculo, estado="SALIO", cajon=cajon)
+                publish(vehicle_id, VehicleState.EXITED, slot=slot)
             finally:
-                semaforo.release()  # Siempre libera el recurso compartido
+                semaphore.release()  # Always release the shared resource
             break
-        else:
-            notificar_ui_y_telemetria(id_vehiculo, estado="BLOQUEADO_EN_COLA")
+        # else: still blocked in the queue (WAITING); loop and retry
 ```
 
 ---
@@ -323,3 +351,42 @@ chore: add logs directory to .gitignore
 - Ramas de trabajo: `feat/<tema>`, `fix/<tema>`, `docs/<tema>`, `refactor/<tema>` (nombres en inglés y en `kebab-case`).
 - No hacer commits directos de código roto en `main`; las pruebas (`python3 -m unittest discover -s tests`) deben pasar antes de integrar.
 - Nunca versionar `logs/`, `__pycache__/` ni archivos `.csv` generados.
+
+---
+
+## 10. Clean Code y Clean Architecture
+
+### 10.1 Clean Architecture (aplicada al MVC por capas)
+- **Regla de dependencia**: las dependencias apuntan hacia adentro: `views → core → models` y `processes → data → models`. `models` solo puede depender de la librería estándar (y de `config` si es estrictamente necesario).
+- **Inversión de dependencias (DIP)**: `core` no conoce colas concretas ni Tkinter; publica a través de **puertos** (`typing.Protocol`) definidos en `src/core/ports.py`. Las implementaciones concretas se inyectan.
+- **Inyección de dependencias**: prohibido el estado global mutable. Cada clase recibe por constructor lo que usa (`config`, `stop_event`, `publisher`, `rng`). La composición de objetos ocurre **solo** en `main.py` (*composition root*).
+- **Configuración inmutable**: todos los parámetros viven en un único `SimulationConfig` (`@dataclass(frozen=True)`) validado en `__post_init__`. Prohibido leer constantes sueltas de configuración.
+- **Contratos de datos**: todo mensaje entre capas o procesos es un `dataclass` de `src/models/` (inmutable con `frozen=True` cuando sea un evento, y *picklable*).
+
+### 10.2 Clean Code
+- **SOLID**, con énfasis en **SRP**: una clase = una razón de cambio.
+- **Nombres** descriptivos en inglés, sin abreviaturas crípticas:
+  | Elemento | Convención | Ejemplo |
+  | :--- | :--- | :--- |
+  | Clases | `PascalCase` | `ParkingManager` |
+  | Funciones / variables | `snake_case` | `try_acquire_slot` |
+  | Constantes | `UPPER_SNAKE_CASE` | `DEFAULT_CONFIG` |
+  | Privados | prefijo `_` | `_claim_free_slot` |
+  | Booleanos | prefijo `is_` / `has_` | `is_running` |
+  | Unidades | sufijo explícito | `acquire_timeout_s`, `ui_poll_interval_ms` |
+- **Funciones cortas** (idealmente < 25 líneas), un solo nivel de abstracción, máximo 3–4 parámetros (si hay más, agruparlos en un `dataclass`).
+- **Sin números mágicos**: todo valor va a `SimulationConfig` o a una constante con nombre.
+- **Type hints** obligatorios y **docstrings estilo Google** en toda la API pública.
+- **Errores explícitos**: validar entradas con `ValueError`/`TypeError`; prohibido `except:` desnudo o silenciar excepciones.
+- **Formato**: PEP 8, líneas ≤ 100 caracteres, imports ordenados (stdlib → proyecto), sin código muerto ni comentarios obsoletos.
+- **DRY**: no duplicar estructuras de datos ni lógica; extraer funciones auxiliares.
+
+---
+
+## 11. Desarrollo por Features (Guía para Colaboradores)
+
+1. Cada capa se desarrolla en su propia rama (`feat/models`, `feat/core`, `feat/data`, `feat/processes`, `feat/views`), en este orden (de abajo hacia arriba).
+2. Al iniciar una feature se definen **primero sus contratos públicos** (clases, métodos, funciones y variables con *type hints* y docstrings) y luego se implementan con sus pruebas.
+3. Solo se definen los contratos de la capa que se está trabajando; las demás capas se definen en su propia feature.
+4. No se cambian firmas públicas de capas ya integradas en `main` sin discutirlo y documentarlo (y, si rompe compatibilidad, con `!` y `BREAKING CHANGE:` en el commit).
+5. Antes de abrir el merge: `python3 -m unittest discover -s tests -t .` debe pasar y el código debe cumplir las secciones 3 y 10.

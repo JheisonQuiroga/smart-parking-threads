@@ -10,8 +10,12 @@ Cada **vehículo es un hilo** (`threading.Thread`) que compite por un número li
 ## Uso
 ```bash
 python3 main.py                              # ejecutar el simulador
-python3 -m unittest discover -s tests        # ejecutar pruebas
+python3 -m unittest discover -s tests -t .   # ejecutar pruebas
 ```
 
 ## Arquitectura
-Modular con patrón MVC: `src/models`, `src/views`, `src/core` (controlador), `src/processes` y `src/data` (persistencia). Las reglas completas de desarrollo y de commits están en [AGENTS.md](AGENTS.md#regla-9-flujo-de-trabajo-y-convención-de-commits).
+MVC + capas de servicio y persistencia: `src/models` (M), `src/views` (V), `src/core` (C, controlador), `src/processes` (proceso de telemetría) y `src/data` (persistencia). Las reglas completas de desarrollo y de commits están en [AGENTS.md](AGENTS.md#regla-9-flujo-de-trabajo-y-convención-de-commits).
+
+## Convenciones
+- **Idioma**: código, docstrings y commits en inglés; textos de la GUI y documentación en español.
+- **Desarrollo por features**: cada capa se trabaja en su rama (`feat/models`, `feat/core`, …), definiendo primero sus contratos y luego su implementación con pruebas. Ver [AGENTS.md](AGENTS.md) (secciones 10 y 11).
