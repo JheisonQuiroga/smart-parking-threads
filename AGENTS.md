@@ -204,7 +204,8 @@ smart-parking-threads/
 │   │   └── ports.py               # Interfaces (typing.Protocol), p. ej. EventPublisher
 │   ├── processes/                 # Paralelismo real (multiprocessing)
 │   │   ├── __init__.py
-│   │   └── telemetry_proc.py      # Process: cálculo de métricas SO; delega la escritura a src/data
+│   │   ├── metrics_calculator.py  # MetricsCalculator: fórmulas puras de métricas SO (sin I/O, testeable)
+│   │   └── telemetry_proc.py      # TelemetryWorker(Process): consume la cola, publica métricas y delega la escritura a src/data
 │   └── data/                      # Persistencia aislada (Repository)
 │       ├── __init__.py
 │       └── csv_repository.py      # Escritura/lectura de eventos CSV/log en logs/
