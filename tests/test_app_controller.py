@@ -1,30 +1,35 @@
 """Unit tests for the AppController facade."""
 
+import tempfile
 import threading
 import time
 import unittest
 
 from src.config import SimulationConfig
 from src.core.app_controller import AppController
+from src.models.metrics import MetricsSnapshot
 from src.models.vehicle import VehicleState
 
 
 class TestAppControllerLifecycle(unittest.TestCase):
-    """Test start, add_vehicle, stop, reset and event draining in AppController."""
+    """Test start, add_vehicle, stop, reset, telemetry and event draining in AppController."""
 
     def setUp(self) -> None:
+        self._temp_dir = tempfile.TemporaryDirectory()
         self.fast_config = SimulationConfig(
             capacity=3,
             initial_vehicles=2,
             arrival_time_range=(0.01, 0.02),
             parking_time_range=(0.02, 0.04),
             acquire_timeout_s=0.02,
+            metrics_publish_interval_s=0.05,
+            logs_dir=self._temp_dir.name,
         )
         self.controller = AppController(config=self.fast_config)
 
     def tearDown(self) -> None:
-        if self.controller.is_running:
-            self.controller.shutdown()
+        self.controller.shutdown()
+        self._temp_dir.cleanup()
 
     def test_initial_state(self) -> None:
         self.assertFalse(self.controller.is_running)
@@ -32,23 +37,32 @@ class TestAppControllerLifecycle(unittest.TestCase):
         self.assertEqual(self.controller.occupied, 0)
         self.assertEqual(self.controller.available, 3)
         self.assertEqual(self.controller.active_threads_count, 0)
+        self.assertEqual(self.controller.slots_snapshot(), (None, None, None))
+        self.assertFalse(self.controller.is_telemetry_alive)
 
-    def test_start_and_drain_events(self) -> None:
+    def test_start_and_drain_events_and_metrics(self) -> None:
         self.controller.start()
         self.assertTrue(self.controller.is_running)
         self.assertEqual(self.controller.active_threads_count, 2)
+        self.assertTrue(self.controller.is_telemetry_alive)
 
-        # Allow some events to be generated
-        time.sleep(0.1)
+        # Allow some events and metrics to be generated
+        time.sleep(0.15)
 
         events = self.controller.drain_ui_events()
         self.assertGreater(len(events), 0)
         vehicle_ids = {e.vehicle_id for e in events}
         self.assertTrue(vehicle_ids.issubset({1, 2}))
 
+        metrics = self.controller.drain_metrics()
+        # Telemetry worker should have emitted at least one snapshot
+        if metrics is not None:
+            self.assertIsInstance(metrics, MetricsSnapshot)
+
         self.controller.stop()
         self.assertFalse(self.controller.is_running)
         self.assertEqual(self.controller.active_threads_count, 0)
+        self.assertFalse(self.controller.is_telemetry_alive)
 
     def test_add_vehicle_dynamically(self) -> None:
         self.controller.start()
@@ -108,6 +122,7 @@ class TestAppControllerLifecycle(unittest.TestCase):
         self.assertEqual(self.controller.occupied, 0)
         self.assertEqual(self.controller.active_threads_count, 0)
         self.assertEqual(len(self.controller.drain_ui_events()), 0)
+        self.assertIsNone(self.controller.drain_metrics())
 
 
 if __name__ == "__main__":
