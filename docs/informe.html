@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Informe Final — Simulador de Parqueadero Inteligente</title>
+  <style>
+    @page {
+      size: letter;
+      margin: 1.5cm 1.6cm 1.5cm 1.6cm;
+    }
+    body {
+      font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+      font-size: 9.5pt;
+      line-height: 1.35;
+      color: #1a1a24;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+    }
+    .header {
+      border-bottom: 2px solid #2b5285;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+    }
+    .institution {
+      font-size: 11pt;
+      font-weight: bold;
+      color: #1e3a5f;
+      text-transform: uppercase;
+      margin: 0;
+    }
+    .meta-line {
+      font-size: 8.5pt;
+      color: #4a4a5a;
+      margin: 2px 0 0 0;
+    }
+    h1 {
+      font-size: 12pt;
+      color: #181825;
+      margin: 8px 0 10px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    h2 {
+      font-size: 10pt;
+      color: #1e3a5f;
+      border-left: 3.5px solid #2b5285;
+      padding-left: 6px;
+      margin: 10px 0 6px 0;
+      text-transform: uppercase;
+    }
+    h3 {
+      font-size: 9pt;
+      color: #2b3040;
+      margin: 6px 0 4px 0;
+    }
+    p {
+      margin: 0 0 6px 0;
+      text-align: justify;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 6px 0 10px 0;
+      font-size: 8.5pt;
+    }
+    th, td {
+      border: 1px solid #d0d5dd;
+      padding: 4px 6px;
+      text-align: left;
+    }
+    th {
+      background-color: #f0f4f9;
+      color: #1e3a5f;
+      font-weight: 600;
+    }
+    tr:nth-child(even) {
+      background-color: #fbfcfe;
+    }
+    ul, ol {
+      margin: 4px 0 8px 18px;
+      padding: 0;
+    }
+    li {
+      margin-bottom: 3px;
+      text-align: justify;
+    }
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+    .screenshot-container {
+      text-align: center;
+      margin: 6px 0 10px 0;
+    }
+    .screenshot {
+      width: 100%;
+      max-height: 270px;
+      object-fit: contain;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .caption {
+      font-size: 8pt;
+      color: #555e6c;
+      font-style: italic;
+      margin-top: 3px;
+    }
+    .metric-value {
+      font-weight: bold;
+      color: #1e3a5f;
+      text-align: center;
+    }
+    .footer-links {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 8.5pt;
+      margin-top: 8px;
+    }
+    .footer-links p {
+      margin: 2px 0;
+    }
+    code {
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 8.5pt;
+      background-color: #f1f3f7;
+      padding: 1px 3px;
+      border-radius: 3px;
+      color: #9c27b0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PÁGINA 1 -->
+  <div class="header">
+    <div class="institution">Universidad EAN — Facultad de Ingeniería</div>
+    <div class="meta-line"><strong>Asignatura:</strong> Arquitectura de Computadores y Sistemas Operativos &nbsp;|&nbsp; <strong>Docente:</strong> Diana Carolina Beltrán Peña</div>
+    <div class="meta-line"><strong>Estudiantes:</strong> [Nombres y Apellidos de los Integrantes] &nbsp;|&nbsp; <strong>Periodo:</strong> Semestre 2026-2 &nbsp;|&nbsp; Bogotá D.C.</div>
+  </div>
+
+  <h1>PROYECTO FINAL — Simulador de Parqueadero Inteligente con Hilos, Multiprocessing y GUI en Python</h1>
+
+  <h2>1. Descripción del Sistema y Analogía con Sistemas Operativos</h2>
+  <p>
+    El proyecto consiste en un simulador interactivo de parqueadero inteligente en <strong>Python</strong> con interfaz gráfica en <strong>Tkinter</strong>. Su objetivo fundamental es representar visual y cuantitativamente cómo un <strong>Sistema Operativo (SO)</strong> gestiona la concurrencia, sincronización y competencia de múltiples procesos que compiten por un conjunto finito y compartido de recursos del sistema.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 32%;">Concepto en Sistemas Operativos</th>
+        <th style="width: 38%;">Implementación en el Simulador</th>
+        <th style="width: 30%;">Primitivo / Componente</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Gestor de Recursos del SO</strong></td>
+        <td>Controlador central del parqueadero</td>
+        <td><code>ParkingManager</code> (capa core)</td>
+      </tr>
+      <tr>
+        <td><strong>Recursos Finitos (CPU / RAM / E-S)</strong></td>
+        <td>Cajones físicos del parqueadero (capacidad fija <code>N = 5</code>)</td>
+        <td>Estructura compartida <code>_slots</code></td>
+      </tr>
+      <tr>
+        <td><strong>Procesos Concurrentes / Hilos</strong></td>
+        <td>Cada vehículo que ingresa, se estaciona y sale</td>
+        <td><code>threading.Thread</code> (por vehículo)</td>
+      </tr>
+      <tr>
+        <td><strong>Semáforo Contador</strong></td>
+        <td>Control de cupos disponibles; bloqueo al saturarse</td>
+        <td><code>threading.BoundedSemaphore(5)</code></td>
+      </tr>
+      <tr>
+        <td><strong>Mutex / Exclusión Mutua</strong></td>
+        <td>Sección crítica al reclamar o liberar cajón y contador</td>
+        <td><code>threading.Lock()</code></td>
+      </tr>
+      <tr>
+        <td><strong>Proceso Paralelo Independiente</strong></td>
+        <td>Telemetría, cálculo de métricas SO y persistencia CSV</td>
+        <td><code>multiprocessing.Process</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Ciclo de Vida y Transición de Estados del Proceso</h3>
+  <p>
+    Cada vehículo emula fielmente los estados clásicos de un proceso en el SO:
+    <strong>1) Nuevo (<code>ARRIVING</code>):</strong> El hilo inicia con una latencia aleatoria de llegada para simular solicitudes asíncronas.
+    <strong>2) Listo / Bloqueado (<code>WAITING</code>):</strong> El hilo invoca <code>semaphore.acquire()</code>; si la capacidad está colmada, el SO suspende el hilo en la cola de bloqueo.
+    <strong>3) En Ejecución (<code>PARKED</code>):</strong> Al obtener cupo, ingresa a la sección crítica (<code>with lock:</code>) para reclamar su cajón físico y permanece en servicio durante su tiempo aleatorio de estadía.
+    <strong>4) Terminado (<code>EXITED</code>):</strong> Accede a sección crítica para desocupar el cajón y ejecuta <code>semaphore.release()</code> para ceder el recurso a los hilos en cola.
+  </p>
+
+  <h2>2. Arquitectura de Concurrencia y Sincronización</h2>
+  <ul>
+    <li><strong>Control de Capacidad con Semáforo Contador:</strong> La capacidad máxima está regida por <code>BoundedSemaphore(5)</code>. Si el parqueadero está lleno, las solicitudes entrantes quedan bloqueadas sin consumir ciclos de CPU inútiles (se evita el <em>busy waiting</em>).</li>
+    <li><strong>Exclusión Mutua Estricta (Sección Crítica):</strong> La lista de cajones y el contador <code>occupied</code> están protegidos con <code>with self._lock:</code>. Se diseñaron dos secciones críticas atómicas y ultra-rápidas (ingreso y salida). El hilo <strong>nunca</strong> retiene el cerrojo durante su tiempo de parqueo, permitiendo alta concurrencia.</li>
+    <li><strong>Multiprocesamiento Real (Telemetría y Persistencia):</strong> Siguiendo principios de Clean Architecture, un proceso secundario con su propio espacio de memoria (GIL separado) recibe eventos por <code>multiprocessing.Queue</code>, calcula las métricas de rendimiento en tiempo real y persiste el log en CSV (<code>csv_repository.py</code>) sin restar fluidez a la interfaz.</li>
+    <li><strong>Seguridad de Hilos en la GUI (Tkinter):</strong> Tkinter no es <em>thread-safe</em>. Los hilos secundarios nunca tocan widgets; envían eventos a <code>ui_queue</code> y la vista se refresca de forma segura cada <code>100 ms</code> vía <code>root.after()</code>.</li>
+  </ul>
+
+  <!-- PÁGINA 2 -->
+  <div class="page-break"></div>
+
+  <h2>3. Captura del Simulador en Ejecución y Análisis Cuantitativo</h2>
+  
+  <div class="screenshot-container">
+    <img src="simulador_ejecucion.png" alt="Simulador de Parqueadero en Ejecución" class="screenshot">
+    <div class="caption">Figura 1: Interfaz gráfica en Tkinter tras culminar una corrida de 8 vehículos sobre 5 cupos finitos, mostrando grilla de cajones, tabla de estados con tiempos en vivo, métricas de SO y consola de eventos.</div>
+  </div>
+
+  <h3>Dinámica de Sincronización y Relevo de Recursos Observada</h3>
+  <p>
+    En la corrida experimental registrada con <strong>5 cupos</strong> y <strong>8 vehículos</strong>:
+  </p>
+  <ul>
+    <li><strong>Admisión Inmediata:</strong> Los primeros cinco vehículos en despertar (<code>#3</code>, <code>#2</code>, <code>#7</code>, <code>#5</code>, <code>#4</code>) adquirieron el semáforo sin demora (<code>T. Espera = 0.00 s</code>), ocuparon los cajones 1 al 5 y coparon el sistema (<code>5/5</code>).</li>
+    <li><strong>Bloqueo y Formación de Cola:</strong> Los vehículos excedentes (<code>#8</code>, <code>#1</code>, <code>#6</code>) solicitaron cupo con el semáforo en cero, pasando a estado de bloqueo real en la cola del SO.</li>
+    <li><strong>Relevo Dinámico de la Sección Crítica:</strong> Al minuto <code>13:29:30</code>, el Vehículo #2 terminó su servicio, tomó el <code>Lock</code> para desalojar el Cajón #2 e hizo <code>release()</code> del semáforo. Instantáneamente, el SO despertó al Vehículo #1 (que llevaba <code>1.45 s</code> en espera), el cual tomó el <code>Lock</code> y se apropió del cajón liberado sin ninguna colisión. Lo mismo ocurrió con los vehículos #8 (<code>T. Espera = 4.49 s</code>) y #6 (<code>T. Espera = 4.75 s</code>).</li>
+  </ul>
+
+  <h3>Métricas de Planificación del Sistema Operativo Obtenidas</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 30%;">Métrica de Rendimiento SO</th>
+        <th style="width: 15%; text-align: center;">Valor Obtenido</th>
+        <th style="width: 55%;">Interpretación en Sistemas Operativos</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>T. Espera Promedio (<em>Avg Waiting</em>)</strong></td>
+        <td class="metric-value">1.34 s</td>
+        <td>Tiempo medio que los procesos permanecieron suspendidos en cola antes de recibir el recurso.</td>
+      </tr>
+      <tr>
+        <td><strong>T. Servicio Promedio (<em>Burst Time</em>)</strong></td>
+        <td class="metric-value">6.01 s</td>
+        <td>Tiempo medio durante el cual los vehículos mantuvieron asignado el recurso (estacionados).</td>
+      </tr>
+      <tr>
+        <td><strong>T. Retorno Promedio (<em>Turnaround</em>)</strong></td>
+        <td class="metric-value">7.35 s</td>
+        <td>Tiempo de ciclo completo: \(T_{\text{retorno}} = T_{\text{espera}} + T_{\text{servicio}}\) (\(1.34\text{ s} + 6.01\text{ s}\)).</td>
+      </tr>
+      <tr>
+        <td><strong>Tasa de Atención (<em>Throughput</em>)</strong></td>
+        <td class="metric-value">1.51 veh/min</td>
+        <td>Productividad del sistema: vehículos atendidos completamente por unidad de tiempo.</td>
+      </tr>
+      <tr>
+        <td><strong>Utilización del Recurso</strong></td>
+        <td class="metric-value">3.0%</td>
+        <td>Proporción acumulada de tiempo que los cajones estuvieron en uso respecto al total disponible.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>4. Conclusiones Técnicas</h2>
+  <ol>
+    <li><strong>Exclusión Mutua Rigurosa:</strong> La combinación de <code>BoundedSemaphore</code> para gobernar el aforo total y <code>Lock</code> para gobernar las modificaciones de cajones previno de manera categórica las condiciones de carrera y la sobreasignación de cupos.</li>
+    <li><strong>Eficiencia en el Uso del CPU:</strong> El bloqueo nativo de los hilos mediante primitivos de sincronización de Python evitó el consumo innecesario de ciclos de procesamiento (<em>busy waiting</em>), garantizando que los hilos solo consumieran CPU al cambiar de estado.</li>
+    <li><strong>Arquitectura Multiprocesamiento Escalable:</strong> La delegación de cálculos y persistencia a un proceso secundario demostró el beneficio del paralelismo real con paso de mensajes (colas inter-proceso), manteniendo la interfaz de usuario fluida y libre de congelamientos.</li>
+  </ol>
+
+  <div class="footer-links">
+    <p><strong>Repositorio de Código Fuente:</strong> <code>https://github.com/jheison-quiroga/smart-parking-threads</code></p>
+    <p><strong>Enlace del Video Explicativo (3 a 5 min):</strong> <code>[Pegar aquí la URL de YouTube o Google Drive]</code></p>
+  </div>
+
+</body>
+</html>
