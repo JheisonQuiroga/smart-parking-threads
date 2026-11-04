@@ -141,6 +141,9 @@ class TestViewsWidgets(unittest.TestCase):
 
     def test_event_console_log(self) -> None:
         console = EventConsole(self.root)
+        self.assertEqual(console.cget("text"), " Registro de Eventos ")
+        self.assertEqual(console.text_area.cget("state"), "disabled")
+
         event = VehicleEvent(
             timestamp=time.time(),
             vehicle_id=3,
@@ -149,11 +152,15 @@ class TestViewsWidgets(unittest.TestCase):
         console.log_event(event)
         console.log_system("Mensaje de prueba")
 
+        # After logging, text area must remain disabled (read-only)
+        self.assertEqual(console.text_area.cget("state"), "disabled")
+
         content = console.text_area.get("1.0", "end")
         self.assertIn("Vehículo #3", content)
         self.assertIn("Mensaje de prueba", content)
 
         console.clear()
+        self.assertEqual(console.text_area.cget("state"), "disabled")
         self.assertEqual(console.text_area.get("1.0", "end").strip(), "")
         console.destroy()
 

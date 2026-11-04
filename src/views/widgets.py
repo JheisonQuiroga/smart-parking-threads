@@ -627,7 +627,7 @@ class EventConsole(tk.LabelFrame):
     def __init__(self, master: tk.Widget, **kwargs) -> None:
         super().__init__(
             master,
-            text=" Bitácora de Sincronización SO (Sección Crítica y Semáforos) ",
+            text=" Registro de Eventos ",
             font=("Segoe UI", 10, "bold"),
             fg="#cdd6f4",
             bg="#252538",
@@ -652,6 +652,7 @@ class EventConsole(tk.LabelFrame):
             highlightthickness=1,
             highlightbackground="#313244",
             wrap="word",
+            state="disabled",
         )
         scroll = ttk.Scrollbar(container, orient="vertical", command=self.text_area.yview)
         self.text_area.configure(yscrollcommand=scroll.set)
@@ -695,19 +696,25 @@ class EventConsole(tk.LabelFrame):
                 f"Semáforo liberado [Ocupados: {event.occupied}/{event.capacity}]"
             )
 
+        self.text_area.configure(state="normal")
         self.text_area.insert("end", f"[{time_str}] ", "time")
         self.text_area.insert("end", f"{action_text}\n", tag)
         self.text_area.see("end")
+        self.text_area.configure(state="disabled")
 
     def log_system(self, message: str) -> None:
         """Log a generic system information message."""
         from datetime import datetime
 
         time_str = datetime.now().strftime("%H:%M:%S")
+        self.text_area.configure(state="normal")
         self.text_area.insert("end", f"[{time_str}] [SISTEMA] ", "time")
         self.text_area.insert("end", f"{message}\n", "system")
         self.text_area.see("end")
+        self.text_area.configure(state="disabled")
 
     def clear(self) -> None:
         """Clear all console output."""
+        self.text_area.configure(state="normal")
         self.text_area.delete("1.0", "end")
+        self.text_area.configure(state="disabled")
