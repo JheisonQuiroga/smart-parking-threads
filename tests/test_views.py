@@ -96,16 +96,44 @@ class TestViewsWidgets(unittest.TestCase):
 
     def test_vehicle_table_update_and_clear(self) -> None:
         table = VehicleTable(self.root)
-        event = VehicleEvent(
-            timestamp=time.time(),
-            vehicle_id=7,
-            state=VehicleState.PARKED,
-            slot=2,
-            occupied=1,
-            capacity=4,
+        t0 = time.time()
+        # 1. Vehicle enters WAITING
+        table.update_from_event(
+            VehicleEvent(timestamp=t0, vehicle_id=7, state=VehicleState.WAITING)
         )
-        table.update_from_event(event)
+        # 2. Vehicle acquires slot and enters PARKED 1.5s later
+        table.update_from_event(
+            VehicleEvent(
+                timestamp=t0 + 1.5,
+                vehicle_id=7,
+                state=VehicleState.PARKED,
+                slot=2,
+                occupied=1,
+                capacity=4,
+                waiting_time_s=1.5,
+            )
+        )
+        # 3. Vehicle exits 3.0s later
+        table.update_from_event(
+            VehicleEvent(
+                timestamp=t0 + 4.5,
+                vehicle_id=7,
+                state=VehicleState.EXITED,
+                slot=2,
+                occupied=0,
+                capacity=4,
+                waiting_time_s=1.5,
+                parking_time_s=3.0,
+            )
+        )
         self.assertTrue(table.tree.exists("7"))
+        row = table.tree.item("7")["values"]
+        self.assertEqual(row[0], "Vehículo #7")
+        self.assertEqual(row[1], "Salió (Terminado)")
+        self.assertEqual(row[2], "#3")
+        self.assertEqual(row[3], "1.50 s")  # T. Espera
+        self.assertEqual(row[4], "3.00 s")  # T. Servicio
+        self.assertEqual(row[5], "4.50 s")  # T. Retorno (1.50 + 3.00)
 
         table.clear()
         self.assertFalse(table.tree.exists("7"))

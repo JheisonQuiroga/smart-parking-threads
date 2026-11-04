@@ -494,6 +494,7 @@ class VehicleTable(tk.LabelFrame):
             **kwargs,
         )
         self._vehicles: dict[int, VehicleInfo] = {}
+        self._timestamps: dict[int, dict[str, float]] = {}
         self._build_tree()
 
     def _build_tree(self) -> None:
@@ -529,6 +530,8 @@ class VehicleTable(tk.LabelFrame):
 
     def update_from_event(self, event: VehicleEvent) -> None:
         """Update or insert vehicle entry based on a new VehicleEvent."""
+        import time as _time
+
         v_id = event.vehicle_id
         if v_id not in self._vehicles:
             self._vehicles[v_id] = VehicleInfo(
@@ -536,34 +539,84 @@ class VehicleTable(tk.LabelFrame):
                 state=event.state,
                 slot=event.slot,
             )
-        else:
-            info = self._vehicles[v_id]
-            info.state = event.state
-            if event.slot is not None:
-                info.slot = event.slot
+            self._timestamps[v_id] = {}
 
         info = self._vehicles[v_id]
+        ts = self._timestamps[v_id]
+        info.state = event.state
+        if event.slot is not None:
+            info.slot = event.slot
+
+        # Track state transitions and accumulate elapsed times
+        now = event.timestamp if event.timestamp > 0 else _time.time()
+        if event.state == VehicleState.WAITING:
+            if "waiting_start" not in ts:
+                ts["waiting_start"] = now
+        elif event.state == VehicleState.PARKED:
+            if "parked_start" not in ts:
+                ts["parked_start"] = now
+            if "waiting_start" in ts and info.waiting_time_s == 0.0:
+                info.waiting_time_s = max(0.0, now - ts["waiting_start"])
+        elif event.state == VehicleState.EXITED:
+            if "parked_start" in ts and info.parking_time_s == 0.0:
+                info.parking_time_s = max(0.0, now - ts["parked_start"])
+
+        # Also accept any direct metrics emitted with the event
+        if event.waiting_time_s > 0:
+            info.waiting_time_s = event.waiting_time_s
+        if event.parking_time_s > 0:
+            info.parking_time_s = event.parking_time_s
+
+        self._render_row(v_id)
+
+    def refresh_live_times(self) -> None:
+        """Update dynamically ticking times for all currently waiting and parked vehicles."""
+        import time as _time
+
+        now = _time.time()
+        for v_id, info in self._vehicles.items():
+            ts = self._timestamps.get(v_id, {})
+            if info.state == VehicleState.WAITING and "waiting_start" in ts:
+                live_wait = max(0.0, now - ts["waiting_start"])
+                self._render_row(v_id, live_waiting=live_wait)
+            elif info.state == VehicleState.PARKED and "parked_start" in ts:
+                live_park = max(0.0, now - ts["parked_start"])
+                self._render_row(v_id, live_parking=live_park)
+
+    def _render_row(
+        self,
+        vehicle_id: int,
+        live_waiting: Optional[float] = None,
+        live_parking: Optional[float] = None,
+    ) -> None:
+        """Format and update the Treeview row for the given vehicle."""
+        info = self._vehicles[vehicle_id]
         slot_str = f"#{info.slot + 1}" if info.slot is not None else "—"
         state_label = STATE_LABELS.get(info.state, info.state.value)
+
+        wait_s = live_waiting if live_waiting is not None else info.waiting_time_s
+        park_s = live_parking if live_parking is not None else info.parking_time_s
+        turnaround_s = wait_s + park_s
 
         row_values = (
             f"Vehículo #{info.vehicle_id}",
             state_label,
             slot_str,
-            f"{info.waiting_time_s:.2f} s",
-            f"{info.parking_time_s:.2f} s",
-            f"{info.turnaround_time_s:.2f} s",
+            f"{wait_s:.2f} s",
+            f"{park_s:.2f} s",
+            f"{turnaround_s:.2f} s",
         )
 
-        item_id = str(v_id)
+        item_id = str(vehicle_id)
         if self.tree.exists(item_id):
             self.tree.item(item_id, values=row_values, tags=(info.state.value,))
         else:
             self.tree.insert("", "end", iid=item_id, values=row_values, tags=(info.state.value,))
 
     def clear(self) -> None:
-        """Clear all vehicle rows."""
+        """Clear all vehicle rows and time records."""
         self._vehicles.clear()
+        self._timestamps.clear()
         for item in self.tree.get_children():
             self.tree.delete(item)
 

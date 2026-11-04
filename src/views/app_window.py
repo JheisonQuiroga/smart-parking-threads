@@ -190,6 +190,9 @@ class MainWindow:
             self.vehicle_table.update_from_event(event)
             self.event_console.log_event(event)
 
+        # Update live elapsed times for waiting/parked vehicles
+        self.vehicle_table.refresh_live_times()
+
         # 2. Drain and render metrics from the multiprocessing telemetry worker
         snapshot = self._controller.drain_metrics()
         if snapshot is not None:

@@ -43,6 +43,8 @@ class VehicleEvent:
     slot: Optional[int] = None
     occupied: int = 0
     capacity: int = 0
+    waiting_time_s: float = 0.0
+    parking_time_s: float = 0.0
 
     def __post_init__(self) -> None:
         """Validate event fields and capacity invariants."""
@@ -63,6 +65,10 @@ class VehicleEvent:
                 raise ValueError("slot must be >= 0 or None")
             if self.capacity > 0 and self.slot >= self.capacity:
                 raise ValueError("slot must be < capacity")
+        if self.waiting_time_s < 0:
+            raise ValueError("waiting_time_s must be >= 0")
+        if self.parking_time_s < 0:
+            raise ValueError("parking_time_s must be >= 0")
 
     def to_csv_row(self) -> tuple[float, int, str, Union[int, str], int, int]:
         """Return a flat tuple ready to be written by ``csv.writer``."""

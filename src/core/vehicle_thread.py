@@ -183,6 +183,8 @@ class VehicleThread(threading.Thread):
             slot=slot,
             occupied=self._parking.occupied,
             capacity=self._parking.capacity,
+            waiting_time_s=self.waiting_time_s,
+            parking_time_s=self.parking_time_s,
         )
         try:
             self._publisher.publish(event)
