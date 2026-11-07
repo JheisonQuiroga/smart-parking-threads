@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Guión de Grabación — Video Explicativo Simulador de Parqueadero</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      line-height: 1.6;
+      color: #2b2b36;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 24px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 32px 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    header {
+      border-bottom: 2px solid #2b5285;
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+    }
+    h1 {
+      color: #1e3a5f;
+      font-size: 22px;
+      margin: 0 0 6px 0;
+    }
+    .meta {
+      font-size: 13px;
+      color: #555e6c;
+      margin-bottom: 4px;
+    }
+    .badge {
+      display: inline-block;
+      background: #e3f2fd;
+      color: #1565c0;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-top: 6px;
+    }
+    .timeline {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px 18px;
+      margin: 20px 0;
+      font-size: 13px;
+    }
+    .timeline-title {
+      font-weight: bold;
+      color: #1e3a5f;
+      margin-bottom: 6px;
+    }
+    .block {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .block-header {
+      background: #1e3a5f;
+      color: #ffffff;
+      padding: 10px 16px;
+      font-size: 15px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+    }
+    .block-time {
+      background: #ffb74d;
+      color: #1a1a1a;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+    .block-content {
+      padding: 16px 20px;
+    }
+    .action-box {
+      background: #fff8e1;
+      border-left: 4px solid #ffb300;
+      padding: 8px 14px;
+      margin-bottom: 14px;
+      font-size: 13.5px;
+      color: #5d4037;
+    }
+    .action-box strong {
+      color: #bf360c;
+    }
+    .script-text {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #1c1c24;
+      background: #fafafa;
+      border-left: 4px solid #2b5285;
+      padding: 12px 18px;
+      border-radius: 0 4px 4px 0;
+    }
+    .script-text p {
+      margin: 0 0 10px 0;
+    }
+    .script-text p:last-child {
+      margin-bottom: 0;
+    }
+    ul, ol {
+      margin: 6px 0 12px 20px;
+      padding: 0;
+    }
+    li {
+      margin-bottom: 4px;
+    }
+    .checklist {
+      background: #f1f8e9;
+      border: 1px solid #c5e1a5;
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin-top: 24px;
+      font-size: 13.5px;
+    }
+    .checklist h3 {
+      margin-top: 0;
+      color: #2e7d32;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Guión Técnico para Grabación de Video Explicativo (3 a 5 min)</h1>
+    <div class="meta"><strong>Proyecto:</strong> Simulador de Parqueadero Inteligente (Hilos, Semáforos, Locks y Multiprocesamiento)</div>
+    <div class="meta"><strong>Institución:</strong> Universidad EAN — Facultad de Ingeniería | <strong>Docente:</strong> Diana Carolina Beltrán Peña</div>
+    <span class="badge">⏱ Duración Estimada: 4 min 30 s (Máx: 5:00 min)</span>
+  </header>
+
+  <div class="timeline">
+    <div class="timeline-title">DISTRIBUCIÓN DEL TIEMPO RECOMENDADA</div>
+    <div><strong>[0:00 - 0:40]</strong> Bloque 1: Introducción, presentación personal y objetivos del proyecto.</div>
+    <div><strong>[0:40 - 1:40]</strong> Bloque 2: Arquitectura de Procesos e Hilos (¿Cuáles son y qué rol cumplen?).</div>
+    <div><strong>[1:40 - 2:40]</strong> Bloque 3: Sincronización: Semáforos y Locks en Exclusión Mutua.</div>
+    <div><strong>[2:40 - 4:00]</strong> Bloque 4: Demostración en vivo, relevo de recursos, métricas SO y registro.</div>
+    <div><strong>[4:00 - 4:30]</strong> Bloque 5: Conclusiones técnicas y despedida.</div>
+  </div>
+
+  <!-- BLOQUE 1 -->
+  <div class="block">
+    <div class="block-header">
+      <span>BLOQUE 1: Introducción y Contexto Académico</span>
+      <span class="block-time">0:00 – 0:40</span>
+    </div>
+    <div class="block-content">
+      <div class="action-box">
+        <strong>QUÉ MOSTRAR EN PANTALLA:</strong> Ventana principal del simulador abierta, limpia antes de iniciar, mostrando el título del proyecto y los paneles en reposo.
+      </div>
+      <div class="script-text">
+        <p><em>"Cordial saludo, profesora Diana Carolina y compañeros. Mi nombre es [Tu Nombre], estudiante de Ingeniería de la Universidad EAN. En este video presentaré la sustentación y demostración práctica de nuestro proyecto final para la asignatura de <strong>Arquitectura de Computadores y Sistemas Operativos</strong>: el <strong>Simulador de Parqueadero Inteligente con Hilos, Multiprocesamiento y GUI en Python</strong>.</em></p>
+        <p><em>El objetivo principal de este desarrollo es representar visual y cuantitativamente cómo un <strong>Sistema Operativo</strong> administra un conjunto finito de recursos compartidos frente a múltiples procesos concurrentes que compiten por ellos, aplicando primitivos fundamentales de sincronización: <strong>Hilos</strong>, <strong>Semáforos</strong>, <strong>Locks de Exclusión Mutua</strong> y <strong>Multiprocesamiento paralelo</strong>."</em></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOQUE 2 -->
+  <div class="block">
+    <div class="block-header">
+      <span>BLOQUE 2: Procesos e Hilos en el Sistema Operativo</span>
+      <span class="block-time">0:40 – 1:40</span>
+    </div>
+    <div class="block-content">
+      <div class="action-box">
+        <strong>QUÉ MOSTRAR EN PANTALLA:</strong> Señala con el cursor el panel <em>"Hilos de Ejecución (Vehículos)"</em> y la tabla inferior.
+      </div>
+      <div class="script-text">
+        <p><em>"Para entender la arquitectura, primero definamos los dos niveles de concurrencia implementados:</em></p>
+        <p><strong>1. ¿Qué son los Procesos y cuáles tenemos en el proyecto?</strong><br>
+        <em>Un proceso es una instancia independiente de un programa en ejecución administrada directamente por el Sistema Operativo, con su propia memoria y tabla de descriptores. En este proyecto no tenemos un solo proceso, sino <strong>dos procesos del SO corriendo en paralelo real</strong>:</em>
+        <ul>
+          <li><em>El <strong>Proceso Principal</strong>: ejecuta el bucle de eventos de la interfaz gráfica en Tkinter y aloja los hilos concurrentes.</em></li>
+          <li><em>El <strong>Proceso Secundario (TelemetryWorker)</strong>: creado con el módulo <code>multiprocessing</code>. Corre en otro núcleo de CPU con su propio GIL, recibiendo eventos por una cola IPC (<code>multiprocessing.Queue</code>) para calcular métricas de rendimiento en tiempo real y persistir los eventos en CSV sin ralentizar la interfaz.</em></li>
+        </ul>
+        </p>
+        <p><strong>2. ¿Qué son los Hilos y cuáles son en el simulador?</strong><br>
+        <em>Un hilo es la unidad básica de ejecución que vive dentro de un proceso compartiendo el mismo espacio de memoria. En nuestro simulador, <strong>cada vehículo es un hilo independiente (<code>threading.Thread</code>)</strong>. Cada vehículo transita por los estados de un proceso en el SO: <strong>Nuevo</strong> al crearse, <strong>Listo o Bloqueado</strong> al solicitar cupo, <strong>En Ejecución</strong> cuando está estacionado en servicio, y <strong>Terminado</strong> al liberar su cajón y salir."</em></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOQUE 3 -->
+  <div class="block">
+    <div class="block-header">
+      <span>BLOQUE 3: Mecanismos de Sincronización: Semáforos y Locks</span>
+      <span class="block-time">1:40 – 2:40</span>
+    </div>
+    <div class="block-content">
+      <div class="action-box">
+        <strong>QUÉ MOSTRAR EN PANTALLA:</strong> Señala los 5 cajones físicos en la grilla y el panel de configuración.
+      </div>
+      <div class="script-text">
+        <p><em>"Dado que múltiples hilos compiten por recursos finitos, necesitamos sincronización para evitar colisiones:</em></p>
+        <p><strong>1. ¿Qué son los Semáforos y cómo los utilizamos?</strong><br>
+        <em>Un semáforo es un primitivo de sincronización con un contador interno de recursos disponibles. Usamos un <code>threading.BoundedSemaphore(CAPACIDAD)</code> para gobernar el aforo máximo de 5 cupos. Cuando un vehículo llega, invoca <code>acquire()</code>. Si hay cupo disponible, entra de inmediato; pero cuando los 5 cajones se llenan, el semáforo llega a cero y <strong>bloquea de forma nativa a los siguientes hilos</strong>, reteniéndolos suspendidos en la cola del SO sin consumir ciclos de CPU."</em></p>
+        <p><strong>2. ¿Qué son los Locks y por qué son indispensables?</strong><br>
+        <em>Un Lock garantiza la <strong>Exclusión Mutua</strong> en una <strong>Sección Crítica</strong>. Si dos vehículos entraran a buscar cupo al mismo milisegundo sin un Lock, tendríamos una <strong>condición de carrera (race condition)</strong> donde ambos se asignarían el mismo cajón físico o se corrompería el contador de ocupados.</em><br>
+        <em>Para evitarlo, usamos <code>with lock:</code> en dos secciones críticas ultra-cortas: una al <strong>ingresar</strong> para asignar el cajón libre y sumar 1 a ocupados, y otra al <strong>salir</strong> para desalojar el cajón y restar 1. El Lock solo se retiene por microsegundos, permitiendo máxima concurrencia."</em></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOQUE 4 -->
+  <div class="block">
+    <div class="block-header">
+      <span>BLOQUE 4: Demostración en Vivo, Métricas SO y Registro de Eventos</span>
+      <span class="block-time">2:40 – 4:00</span>
+    </div>
+    <div class="block-content">
+      <div class="action-box">
+        <strong>QUÉ HACER EN PANTALLA:</strong> Haz clic en el botón verde <strong>▶ Iniciar simulación</strong> (Capacidad: 5, Vehículos: 8). Señala con el mouse los relevos y la tabla.
+      </div>
+      <div class="script-text">
+        <p><em>"Veamos el sistema en acción. Al presionar 'Iniciar simulación', se lanzan los 8 hilos de vehículos y arranca la telemetría.</em></p>
+        <p><em>(Señalar los cajones en rojo): Observen cómo los primeros vehículos despiertan, adquieren el semáforo y toman el Lock para ocupar los Cajones del 1 al 5. Los íconos cambian a rojo con la imagen del auto indicando que la plaza está ocupada.</em></p>
+        <p><em>(Señalar la tabla inferior): En este instante el parqueadero llega a 5 de 5 cupos (100%). Observen a los vehículos 6, 7 y 8: al encontrar el semáforo en cero, pasan a 'Esperando cupo (Bloqueado)'. Sus hilos están suspendidos por el SO y sus tiempos de espera avanzan en vivo segundo a segundo en la tabla.</em></p>
+        <p><em>(Señalar cuando un vehículo sale): ¡Atención al relevo! El Vehículo #2 termina su estadía, toma el Lock, desocupa el Cajón #2 y ejecuta <code>release()</code>. En ese mismo instante, el semáforo despierta al primer vehículo en cola, quien toma el Lock y se adueña del cajón liberado sin ninguna colisión.</em></p>
+        <p><em>(Señalar Métricas y Registro): En el panel superior vemos las métricas que nuestro proceso secundario calcula en tiempo real:</em>
+        <ul>
+          <li><em><strong>Tiempo de Espera Promedio</strong> en cola.</em></li>
+          <li><em><strong>Tiempo de Servicio</strong> (tiempo estacionado / burst time).</em></li>
+          <li><em><strong>Tiempo de Retorno</strong> (Espera + Servicio).</em></li>
+          <li><em><strong>Utilización del Recurso</strong> en el tiempo.</em></li>
+        </ul>
+        <em>Y en el <strong>Registro de Eventos</strong> (de solo lectura) queda la bitácora cronológica exacta de cada adquisición y liberación."</em></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOQUE 5 -->
+  <div class="block">
+    <div class="block-header">
+      <span>BLOQUE 5: Conclusiones y Cierre</span>
+      <span class="block-time">4:00 – 4:30</span>
+    </div>
+    <div class="block-content">
+      <div class="action-box">
+        <strong>QUÉ MOSTRAR EN PANTALLA:</strong> La simulación completada (cajones en verde DISPONIBLE y todos los vehículos en estado Salió/Terminado).
+      </div>
+      <div class="script-text">
+        <p><em>"Como conclusiones fundamentales de este desarrollo:</em></p>
+        <ol>
+          <li><em>El uso de <strong>semáforos y cerrojos (Locks)</strong> resolvió categóricamente el problema de competencia por recursos compartidos, evitando condiciones de carrera y sobreasignaciones.</em></li>
+          <li><em>La arquitectura híbrida de <strong>hilos para tareas concurrentes</strong> y <strong>multiprocesamiento para cómputo y persistencia</strong> garantizó que la interfaz gráfica no sufriera congelamientos.</em></li>
+          <li><em>El simulador aterriza con total fidelidad los conceptos teóricos de planificación, sincronización y concurrencia que gobiernan a los Sistemas Operativos modernos.</em></li>
+        </ol>
+        <p><em>Muchas gracias por su atención."</em></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="checklist">
+    <h3>Check-list Final de Entrega</h3>
+    <ul>
+      <li>✔ <strong>Duración del video:</strong> entre 3:00 y 4:59 minutos.</li>
+      <li>✔ <strong>Subir a:</strong> YouTube (No Listado / Público) o Google Drive (permiso de acceso abierto).</li>
+      <li>✔ <strong>Vincular enlace:</strong> Pegar la URL resultante en el archivo <code>docs/informe.md</code> (Sección 5).</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>
