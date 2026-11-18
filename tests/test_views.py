@@ -34,13 +34,15 @@ class TestViewsWidgets(unittest.TestCase):
         cls.root.destroy()
 
     def test_icon_helper_loads_assets(self) -> None:
-        car_icon = IconHelper.get_icon("car.png", 48, 48)
-        parking_icon = IconHelper.get_icon("parking.png", 48, 48)
+        car_icon = IconHelper.get_icon("car.png", 52, 52)
+        parking_icon = IconHelper.get_icon("parking.png", 52, 52)
 
         self.assertIsNotNone(car_icon)
         self.assertIsNotNone(parking_icon)
-        self.assertEqual(car_icon.width(), 48)
-        self.assertEqual(parking_icon.width(), 48)
+        self.assertEqual(car_icon.width(), 52)
+        self.assertEqual(car_icon.height(), 52)
+        self.assertEqual(parking_icon.width(), 52)
+        self.assertEqual(parking_icon.height(), 52)
 
     def test_control_panel_parse_config(self) -> None:
         config = SimulationConfig(capacity=4, initial_vehicles=6)

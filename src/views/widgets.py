@@ -4,14 +4,10 @@ All presentation logic lives here. Widgets never communicate directly with
 threads or sync primitives; they only render models and dispatch user actions.
 """
 
-import base64
-import io
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk
 from typing import Callable, Optional
-
-from PIL import Image
 
 from src.config import SimulationConfig
 from src.models.events import VehicleEvent
@@ -61,25 +57,14 @@ class IconHelper:
             return None
 
         try:
-            pil_image = Image.open(filepath).convert("RGBA")
-            pil_image = pil_image.resize((width, height), Image.Resampling.LANCZOS)
-            buffer = io.BytesIO()
-            pil_image.save(buffer, format="PNG")
-            base64_data = base64.b64encode(buffer.getvalue()).decode("ascii")
-            photo = tk.PhotoImage(data=base64_data, master=root)
-            cls._cache[key] = photo
-            return photo
+            raw = tk.PhotoImage(file=str(filepath), master=root)
+            sub_x = max(1, round(raw.width() / width))
+            sub_y = max(1, round(raw.height() / height))
+            resized = raw.subsample(sub_x, sub_y) if (sub_x > 1 or sub_y > 1) else raw
+            cls._cache[key] = resized
+            return resized
         except Exception:
-            # Fallback to direct PhotoImage if PIL fails
-            try:
-                raw = tk.PhotoImage(file=str(filepath), master=root)
-                sub_x = max(1, raw.width() // width)
-                sub_y = max(1, raw.height() // height)
-                subsampled = raw.subsample(sub_x, sub_y)
-                cls._cache[key] = subsampled
-                return subsampled
-            except Exception:
-                return None
+            return None
 
 
 class ControlPanel(tk.LabelFrame):
